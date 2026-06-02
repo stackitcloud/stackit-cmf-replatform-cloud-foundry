@@ -1,0 +1,693 @@
+{
+  "uid": "cf-spring-music-overview-v2",
+  "title": "Spring Music on CF - Runtime & Autoscaler View (v2)",
+  "tags": ["cloud-foundry", "spring-music", "stackit", "autoscaler"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "App Health (spring-music)",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "clamp_max((sum(up{job=\"spring-music-metrics\"} @ end()) or vector(0)), 1)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "max": 1,
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN"
+                },
+                "1": {
+                  "text": "UP"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": ["last"],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Loadgen Activity (derived)",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"spring-music-metrics\",uri!~\"/actuator.*\"}[1m] @ end())) > bool 0",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "max": 1,
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "IDLE/NO LOAD"
+                },
+                "1": {
+                  "text": "ACTIVE"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": ["last"],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Reachable App Targets (proxy for instances)",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(up{job=\"spring-music-metrics\"} @ end())",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": ["last"],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "App Memory vs CF Quota",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum(jvm_memory_used_bytes{job=\"spring-music-metrics\"} @ end()) / (1024 * 1024 * 1024)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": ["last"],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "App CPU (Autoscaler view)",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * avg(process_cpu_usage{job=\"spring-music-metrics\"} @ end())",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 45
+              },
+              {
+                "color": "red",
+                "value": 70
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": ["last"],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Estimated Request Loss",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "-1",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "text": "OFF"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": ["last"],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Instances: Reachable vs Autoscaler Policy Range",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "label_replace(sum(up{job=\"spring-music-metrics\"}), \"series\", \"reachable targets\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        },
+        {
+          "refId": "B",
+          "expr": "label_replace((sum(up{job=\"spring-music-metrics\"}) * 0 + 1), \"series\", \"autoscaler min instances\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        },
+        {
+          "refId": "C",
+          "expr": "label_replace((sum(up{job=\"spring-music-metrics\"}) * 0 + 3), \"series\", \"autoscaler max instances\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "reachable targets"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "autoscaler min instances"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "autoscaler max instances"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "CPU: Runtime vs Autoscaler Thresholds",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "label_replace((100 * avg(process_cpu_usage{job=\"spring-music-metrics\"})), \"series\", \"app cpu %\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        },
+        {
+          "refId": "B",
+          "expr": "label_replace((100 * avg(process_cpu_usage{job=\"spring-music-metrics\"}) * 0 + 45), \"series\", \"scale-up threshold %\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        },
+        {
+          "refId": "C",
+          "expr": "label_replace((100 * avg(process_cpu_usage{job=\"spring-music-metrics\"}) * 0 + 20), \"series\", \"scale-down threshold %\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "app cpu %"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "scale-up threshold %"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "scale-down threshold %"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Memory: JVM Used vs CF Quota",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "label_replace(sum(jvm_memory_used_bytes{job=\"spring-music-metrics\"}), \"series\", \"jvm used\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        },
+        {
+          "refId": "B",
+          "expr": "label_replace((sum(jvm_memory_used_bytes{job=\"spring-music-metrics\"}) * 0 + (1024 * 1024 * 1024)), \"series\", \"cf memory quota (1Gi)\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        },
+        {
+          "refId": "C",
+          "expr": "label_replace(sum(jvm_memory_committed_bytes{job=\"spring-music-metrics\"}), \"series\", \"jvm committed\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "jvm used"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "cf memory quota (1Gi)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "jvm committed"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Request Flow: Loadgen Out vs App In",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "datasource": null,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "label_replace((sum(rate(http_client_requests_seconds_count{job=\"spring-music-loadgen-metrics\"}[1m])) or sum(rate(http_server_requests_seconds_count{job=\"spring-music-loadgen-metrics\",uri!~\"/actuator.*\"}[1m])) or vector(0)), \"series\", \"loadgen out req/s\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        },
+        {
+          "refId": "B",
+          "expr": "label_replace((sum(rate(http_server_requests_seconds_count{job=\"spring-music-metrics\",uri!~\"/actuator.*\"}[1m])) or vector(0)), \"series\", \"app in req/s\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        },
+        {
+          "refId": "C",
+          "expr": "label_replace(clamp_min((sum(rate(http_client_requests_seconds_count{job=\"spring-music-loadgen-metrics\"}[1m])) or sum(rate(http_server_requests_seconds_count{job=\"spring-music-loadgen-metrics\",uri!~\"/actuator.*\"}[1m])) or vector(0)) - (sum(rate(http_server_requests_seconds_count{job=\"spring-music-metrics\",uri!~\"/actuator.*\"}[1m])) or vector(0)), 0), \"series\", \"gap req/s\", \"\", \"\")",
+          "legendFormat": "{{series}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "loadgen out req/s"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "app in req/s"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "gap req/s"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "text",
+      "title": "Interpretation (CF + Autoscaler)",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "- **App Health** ist ein echtes 0/1-Signal (UP/DOWN) auf Basis der `up`-Metrik des App-Jobs.\\n- **Loadgen Activity (derived)** zeigt `ACTIVE`, wenn am App-Endpunkt `/` Last ankommt (abgeleitet aus App-Request-Rate), sonst `IDLE/NO LOAD`.\\n- **A-series/B-series/C-series** waren generische Grafana-Seriennamen ohne Label. Das Dashboard nutzt benannte Serien (z. B. `autoscaler min instances`).\\n- **Reachable App Targets** ist ein Laufzeit-Proxy, kein CF-API-Instanzzähler.\\n- **Request Loss** zeigt `OFF`, solange kein dedizierter Loadgen-Metrics-Job vorhanden ist.\\n- Für exakte CF-Instanz-, RAM- und CPU-Werte aus reiner CF-API-Sicht ist zusätzlich ein CF-Exporter-Job nötig; in der aktuellen Observability-Quelle liegen diese Metriken noch nicht vor."
+      }
+    }
+  ]
+}
